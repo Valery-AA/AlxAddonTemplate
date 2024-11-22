@@ -1,16 +1,10 @@
-from pathlib import Path  # type definition
-import bpy
-
 # AlxModuleAutoloader
 import importlib
-from .AlxModuleAutoloader import (
-    developer_gather_addon_folders,
-    developer_gather_addon_files,
-    developer_execute_locals_update,
-    developer_gather_classes_from_files,
-    developer_register_addon_classes,
-    developer_unregister_addon_classes
+from .AlxModuleManager import (
+    Alx_Module_Manager
 )
+
+import bpy
 
 
 bl_info = {
@@ -26,29 +20,18 @@ bl_info = {
     "tracker_url": ""
 }
 
-
-addon_path = __path__[0]
-addon_folders: set[Path] = set()
-addon_files: dict[str, Path] = dict()
-addon_classes: set[str] = set()
-
-folder_blacklist: set[str] = {"__pycache__"}
-file_blacklist: set[str] = {"__init__.py"}
+module_loader = Alx_Module_Manager(__path__, globals())
 
 
 def register():
-    addon_folders = developer_gather_addon_folders(addon_path, folder_blacklist)
-    addon_files = developer_gather_addon_files(addon_folders, file_blacklist)
-    developer_execute_locals_update(addon_path, globals(), addon_files)
-
-    addon_classes = developer_gather_classes_from_files(globals(), addon_files)
-    developer_register_addon_classes(addon_classes)
+    module_loader.developer_register_modules()
+    module_loader.developer_process_module_keymaps()
 
     bpy.context.preferences.use_preferences_save = True
 
 
 def unregister():
-    developer_unregister_addon_classes(addon_classes)
+    module_loader.developer_unregister_modules()
 
 
 if __name__ == "__main__":
